@@ -3,21 +3,35 @@ name: Deploy to S3
 on:
   push:
     branches:
-      - main  # or whichever branch you want to trigger the deployment
+      - main  # Change this to your default branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
 
-    - name: Configure AWS Credentials
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # replace with your bucket's region
+        aws-region: us-east-1  # Change to your desired region
 
-    - name: Deploy to S3
+    - name: Install AWS CLI
       run: |
-        aws s3 sync . s3://congodnalab --delete --exclude ".git*" --exclude ".github*"
+        sudo apt-get update
+        sudo apt-get install -y awscli
+
+    - name: List Files to Upload
+      run: |
+        ls -al
+
+    - name: Sync S3 bucket
+      run: |
+        aws s3 sync . s3://congodnalab --delete --debug
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
